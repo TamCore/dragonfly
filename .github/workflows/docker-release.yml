@@ -16,7 +16,7 @@ on:
 
 permissions:
   packages: write
-  contents: read
+  contents: write
 
 env:
   TAG_NAME: ${{ github.event.inputs.TAG_NAME || github.event.release.tag_name }}
@@ -34,6 +34,24 @@ jobs:
 
     - name: checkout
       uses: actions/checkout@v3
+
+    - name: Configure Git
+      if: env.IS_PRERELEASE != 'true'
+      run: |
+        git config user.name "$GITHUB_ACTOR"
+        git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+    - name: Update helm chart
+      if: env.IS_PRERELEASE != 'true'
+      run: |
+        sed -Ei \
+            -e 's/^(version\:) .*/\1 '${{ env.TAG_NAME }}'/g' \
+            -e 's/^(appVersion\:) .*/\1 "'${{ env.TAG_NAME }}'"/g' \
+            contrib/charts/dragonfly/Chart.yaml
+
+        git commit \
+          -m 'chore(helm-chart): update to ${{ env.TAG_NAME }}' \
+          contrib/charts/dragonfly/Chart.yaml
 
     - uses: dsaltares/fetch-gh-release-asset@master
       with:
