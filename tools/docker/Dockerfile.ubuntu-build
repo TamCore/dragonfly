@@ -1,0 +1,53 @@
+# syntax=docker/dockerfile:1
+FROM ubuntu:20.04 as builder
+
+WORKDIR /build
+
+COPY . ./
+
+# install build dependencies
+# taken from https://github.com/dragonflydb/dragonfly/blob/main/.github/workflows/release.yml#L60-L65
+RUN export DEBIAN_FRONTEND=noninteractive && \
+      apt update && \
+      apt install -q -y autoconf-archive cmake curl git libssl-dev \
+        libunwind-dev ninja-build libtool gcc-9 g++-9 libboost-fiber-dev \
+        libxml2-dev zip libzstd-dev
+
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 40  \
+                        --slave   /usr/bin/g++ g++ /usr/bin/g++-9
+
+# build
+# taken from https://github.com/dragonflydb/dragonfly/blob/main/tools/release.sh
+RUN make release
+
+RUN build-opt/dragonfly --version
+
+RUN curl -O https://raw.githubusercontent.com/ncopa/su-exec/212b75144bbc06722fbd7661f651390dc47a43d1/su-exec.c && \
+     gcc -Wall -O2 su-exec.c -o su-exec
+
+# Now prod image
+FROM ubuntu:20.04
+
+# ARG in fact change the env vars during the build process
+# ENV persist the env vars for the built image as well.
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt clean && apt update && apt -y install netcat-openbsd
+
+RUN groupadd -r -g 999 dfly && useradd -r -g dfly -u 999 dfly
+RUN mkdir /data && chown dfly:dfly /data
+
+VOLUME /data
+WORKDIR /data
+COPY tools/docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY tools/docker/healthcheck.sh /usr/local/bin/healthcheck.sh
+COPY --from=builder /build/su-exec /usr/local/bin/
+COPY --from=builder /build/build-opt/dragonfly /usr/local/bin/
+
+HEALTHCHECK CMD /usr/local/bin/healthcheck.sh
+ENTRYPOINT ["entrypoint.sh"]
+
+# For inter-container communication.
+EXPOSE 6379
+
+CMD ["dragonfly", "--logtostderr"]
