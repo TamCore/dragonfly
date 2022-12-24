@@ -7,7 +7,14 @@ COPY . ./
 
 # install build dependencies
 # taken from https://github.com/dragonflydb/dragonfly/blob/main/.github/workflows/release.yml#L60-L65
-RUN export DEBIAN_FRONTEND=noninteractive && \
+RUN \
+  rm -f /etc/apt/apt.conf.d/docker-clean; \
+  echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
+
+RUN \
+  --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    export DEBIAN_FRONTEND=noninteractive && \
       apt update && \
       apt install -q -y autoconf-archive cmake curl git libssl-dev \
         libunwind-dev ninja-build libtool gcc-9 g++-9 libboost-fiber-dev \
@@ -28,11 +35,12 @@ RUN curl -O https://raw.githubusercontent.com/ncopa/su-exec/212b75144bbc06722fbd
 # Now prod image
 FROM ubuntu:20.04
 
-# ARG in fact change the env vars during the build process
-# ENV persist the env vars for the built image as well.
-ARG DEBIAN_FRONTEND=noninteractive
-
-RUN apt clean && apt update && apt -y install netcat-openbsd
+RUN \
+  --mount=type=tmpfs,target=/var/cache/apt \
+  --mount=type=tmpfs,target=/var/lib/apt \
+    export DEBIAN_FRONTEND=noninteractive && \
+      apt update && \
+      apt install -q -y netcat-openbsd
 
 RUN groupadd -r -g 999 dfly && useradd -r -g dfly -u 999 dfly
 RUN mkdir /data && chown dfly:dfly /data
