@@ -5,8 +5,6 @@ WORKDIR /build
 
 COPY . ./
 
-# install build dependencies
-# taken from https://github.com/dragonflydb/dragonfly/blob/main/.github/workflows/release.yml#L60-L65
 RUN \
   rm -f /etc/apt/apt.conf.d/docker-clean; \
   echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
@@ -23,8 +21,6 @@ RUN \
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 40  \
                         --slave   /usr/bin/g++ g++ /usr/bin/g++-9
 
-# build
-# taken from https://github.com/dragonflydb/dragonfly/blob/main/tools/release.sh
 RUN make release
 
 RUN build-opt/dragonfly --version
@@ -32,7 +28,6 @@ RUN build-opt/dragonfly --version
 RUN curl -O https://raw.githubusercontent.com/ncopa/su-exec/212b75144bbc06722fbd7661f651390dc47a43d1/su-exec.c && \
      gcc -Wall -O2 su-exec.c -o su-exec
 
-# Now prod image
 FROM ubuntu:20.04
 
 RUN \
