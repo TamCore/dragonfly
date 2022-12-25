@@ -1,3 +1,6 @@
+BUILD_ARCH := $(shell uname -m)
+RELEASE_NAME := "dragonfly-${BUILD_ARCH}"
+
 .PHONY: default
 
 configure:
@@ -10,14 +13,11 @@ build:
 	ldd dragonfly
 
 package:
-	ARCH=`uname -m`
-	NAME="dragonfly-${ARCH}"
-
 	cd build-opt; \
-	mv dragonfly $NAME; \
-	tar cvfz $NAME.unstripped.tar.gz $NAME ../LICENSE.md; \
-	strip $NAME; \
-	tar cvfz $NAME.tar.gz $NAME ../LICENSE.md
+	mv dragonfly $(RELEASE_NAME); \
+	tar cvfz $(RELEASE_NAME).unstripped.tar.gz $(RELEASE_NAME) ../LICENSE.md; \
+	strip $(RELEASE_NAME); \
+	tar cvfz $(RELEASE_NAME).tar.gz $(RELEASE_NAME) ../LICENSE.md
 
 release: configure build
 
