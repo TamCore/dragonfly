@@ -12,7 +12,7 @@ fi
 
 pwd
 
-make release
+make HELIO_RELEASE=y release
 
 build-opt/dragonfly --version
 

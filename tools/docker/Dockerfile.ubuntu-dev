@@ -1,10 +1,6 @@
 # syntax=docker/dockerfile:1
 FROM ubuntu:20.04 as builder
 
-WORKDIR /build
-
-COPY . ./
-
 RUN \
   rm -f /etc/apt/apt.conf.d/docker-clean; \
   echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
@@ -21,7 +17,11 @@ RUN \
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 40  \
                         --slave   /usr/bin/g++ g++ /usr/bin/g++-9
 
-RUN make release
+WORKDIR /build
+
+COPY . ./
+
+RUN make HELIO_RELEASE=y release
 
 RUN build-opt/dragonfly --version
 
