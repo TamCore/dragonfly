@@ -34,7 +34,7 @@ jobs:
     steps:
     - id: set-output-defaults
       run: |
-        echo "::set-output name=tag::${{ env.IS_PRERELEASE == 'true' && 'alpha' || 'ubuntu' }}"
+        echo "::set-output name=tag::${{ env.IS_PRERELEASE == 'true' && 'alpha' }}"
         echo "::set-output name=tag_latest::${{ env.IS_PRERELEASE == 'true' && 'false' || 'true' }}"
 
   release-container:
