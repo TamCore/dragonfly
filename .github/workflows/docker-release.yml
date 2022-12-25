@@ -41,7 +41,7 @@ jobs:
     needs: release-container-prereq
     uses: ./.github/workflows/reusable-container-workflow.yaml
     with:
-      dockerfile: tools/docker/Dockerfile.ubuntu-prod
+      dockerfile: prod
       tag: ${{ needs.release-container-prereq.outputs.tag }}
       tag_latest: ${{ needs.release-container-prereq.outputs.tag_latest == 'true' }}
       image: ghcr.io/${{ github.repository }}

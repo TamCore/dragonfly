@@ -15,7 +15,7 @@ jobs:
   weekly-container-build:
     uses: ./.github/workflows/reusable-container-workflow.yaml
     with:
-      dockerfile: tools/docker/Dockerfile.ubuntu-dev
+      dockerfile: dev
       tag: alpha
       image: ghcr.io/${{ github.repository }}
       registry: ghcr.io

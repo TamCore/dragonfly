@@ -37,6 +37,15 @@ on:
 jobs:
   container-build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - tag: alpine
+            dockerfile: tools/docker/Dockerfile.alpine
+            tag_main: 'false'
+          - tag: ubuntu
+            dockerfile: tools/docker/Dockerfile.ubuntu
+            tag_main: 'true'
     steps:
       - name: checkout
         uses: actions/checkout@v3
@@ -79,7 +88,8 @@ jobs:
           username: ${{ inputs.registry_username }}
           password: ${{ secrets.registry_password }}
 
-      - name: Docker meta
+      - if: matrix.tag_main == 'true'
+        name: Docker meta
         id: metadata
         uses: docker/metadata-action@v3
         with:
@@ -88,7 +98,21 @@ jobs:
           tags: |
             type=raw,value=latest,enable=${{ inputs.tag_latest }}
             type=raw,value=${{ inputs.tag }}
-            type=raw,value=${{ inputs.release_version }}
+            type=raw,value=${{ inputs.tag }}-${{ matrix.tag }}
+            type=raw,value=${{ inputs.release_version }},enable=${{ inputs.release_version != '' }}
+            type=raw,value=${{ inputs.release_version }}-${{ matrix.tag }},enable=${{ inputs.release_version != '' }}
+
+      - if: matrix.tag_main == 'false'
+        name: Docker meta
+        id: metadata2
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            ${{ inputs.image }}
+          tags: |
+            type=raw,value=${{ inputs.tag }}-${{ matrix.tag }}
+            type=raw,value=${{ inputs.release_version }},enable=${{ inputs.release_version != '' }}
+            type=raw,value=${{ inputs.release_version }}-${{ matrix.tag }},enable=${{ inputs.release_version != '' }}
 
       - name: Build release image
         uses: docker/build-push-action@v3
@@ -98,8 +122,10 @@ jobs:
           build-args: |
             QEMU_CPU=max,pauth-impdef=on
           push: true
-          tags: ${{ steps.metadata.outputs.tags }}
+          tags: |
+            ${{ steps.metadata.outputs.tags }}
+            ${{ steps.metadata2.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
-          file: ${{ inputs.dockerfile }}
+          file: ${{ matrix.dockerfile }}-${{ inputs.dockerfile }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
