@@ -22,8 +22,8 @@ spec:
         {{- end }}
       labels:
         {{- include "dragonfly.selectorLabels" . | nindent 8 }}
-    spec:
-      {{- include "dragonfly.pod" . | nindent 6 }}
+  spec:
+    {{- include "dragonfly.pod" . | nindent 6 }}
   volumeClaimTemplates:
     - metadata:
         name: "{{ .Release.Name }}-data"
