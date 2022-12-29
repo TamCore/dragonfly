@@ -1,0 +1,4 @@
+initContainers:
+  - name: busybox
+    image: busybox:1.28
+    command: ['sh', '-c', 'sleep 1']
