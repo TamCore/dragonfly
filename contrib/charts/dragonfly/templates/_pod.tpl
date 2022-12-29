@@ -16,7 +16,7 @@ volumeMounts:
 {{- end }}
 
 {{- define "dragonfly.pod" -}}
-OOPSIBROKEIT
+oops: IBROKEIT
 serviceAccountName: {{ include "dragonfly.serviceAccountName" . }}
 {{- with .Values.imagePullSecrets }}
 imagePullSecrets:
