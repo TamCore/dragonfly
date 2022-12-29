@@ -33,4 +33,8 @@ keywords:
 sources:
   - https://github.com/dragonflydb/dragonfly
 
+maintainers:
+  - name: dragonflydb
+    email: team@dragonflydb.io
+
 kubeVersion: ">=1.23.0-0"
