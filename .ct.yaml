@@ -1,0 +1,7 @@
+# See https://github.com/helm/chart-testing#configuration
+remote: origin
+target-branch: main
+chart-dirs:
+  - contrib/charts
+helm-extra-args: --debug
+check-version-increment: false
