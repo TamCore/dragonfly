@@ -131,6 +131,7 @@ jobs:
 
       - if: ${{ hashFiles(format('{0}-{1}', matrix.dockerfile, inputs.build_type)) }}
         name: Build release image
+        id: build
         uses: docker/build-push-action@v3
         with:
           context: .
@@ -144,3 +145,12 @@ jobs:
           file: ${{ matrix.dockerfile }}-${{ inputs.build_type }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - if: steps.build.outcome == 'success'
+        name: Sign image
+        uses: tamcore/cosign-action@master
+        with:
+          cosign-keyless: true
+          cosign-flags: "-r"
+          tags: |
+            ${{ steps.metadata.outputs.tags }}
